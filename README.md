@@ -13,7 +13,7 @@ Changelog here: [Changelog](Changelog.md)
 4. Type `app.py`
 5. To close press `Ctrl + C` in the console
 
-[Packages](requirements.txt)
+[Requirements](requirements.txt)
 
 # TODO LIST
 ## Front-End
