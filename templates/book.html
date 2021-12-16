@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <title>{{title}}</title>
+    <style>
+        /*--Just to make the words wrap properly for now*/
+        p {white-space: pre-wrap;}
+    </style>
+</head>
+
+<body>
+    <!-- Loops through each section of the novel_text list -->
+    {% set count = [0] %}
+    {% for value in content %}
+        <!-- Checks if the current section is an image -->
+        {% if value.find("filename=") >= 0 %}
+            {% set current_value = count[0] %}
+            <image src="{{ url_for('static', filename=images[current_value])}}"/>
+            {% set count = count.append(count.pop() + 1) %}
+        
+        <!-- If not image, just paste out the contents -->
+            {% else %}
+            <p> 
+                {{value}}
+            </p>
+        {% endif %}
+    {% endfor %}
+</body>
+
+</html>
