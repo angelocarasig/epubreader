@@ -2,6 +2,8 @@ from ebooklib import epub
 import ebooklib
 from bs4 import BeautifulSoup
 import re
+import urllib.request
+import random
 
 '''
 This Python file converts an epub into text. Requires path to epub.
@@ -64,7 +66,6 @@ def chapter_contents(chap, file_path) -> list:
         with open(locations_file,'a+') as f:
             f.write("0")
 
-
     '''Cleaning up the mess'''
     text = soup.find_all(text=True)
     for t in text:
@@ -90,7 +91,6 @@ def convert(epub_path) -> list:
     Does the same as full_book but also cleans extra whitespace and attaches the corresponding image tag to their respective locations.
     '''
 
-
     '''
     First purging locations if it exists for the book
     '''
@@ -107,9 +107,8 @@ def convert(epub_path) -> list:
 
     cleaned = []
 
-
     '''
-    Check for whitespace only chapters before returning
+    PASS 1: Check for whitespace only chapters before returning
     '''
     counter = 0
     for index, val in enumerate(final):
@@ -133,7 +132,31 @@ def convert(epub_path) -> list:
             #Converts multiple spaces into a single space due to previous methods stripping certain
             #parts of the section and leaving extra blank space
             cleaned.append(re.sub(' +', ' ', val))
-            cleaned.append("\n=========\n") #TODO: Remove when chapters are properly seperated
+            # cleaned.append("\n=========\n") #TODO: Remove when chapters are properly seperated
+
+    '''
+    PASS 2: Check for jpg/png hyperlinks
+    '''
+    image_counter = 0
+    for index, section in enumerate(cleaned):
+        WEB_URL_REGEX = r"""(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))"""
+        links = re.findall(WEB_URL_REGEX, section)
+        if len(links) > 0:
+            for _ in range(len(links)):
+                print("Found a link. Checking...")
+                print("Current section links size: ", len(links))
+                print("Links currently contain: ", links)
+                if links[0].find("jpg") >= 0 or links[0].find("png") >= 0:
+                    print("Link: ", links[0])
+                    # cleaned[index] = section.replace(links[0], "filename=\"image.jpg\"") #A proper filename is not important, only needs to be the string "filename=" As thats whats used to search
+                    section = section.replace(links[0], "filename=\"{}images\image{}.jpg\"".format(file_path, counter))
+                    cleaned[index] = section
+                    print(cleaned[index][:100])
+                    urllib.request.urlretrieve(links[0], f'{file_path}images\\image{image_counter}.jpg')
+                    image_counter += 1
+                links.pop(0)
+            print("\n\nSET FINISHED\n\n")
+    
 
     print("\n===Results===\n")
     print("File Path:", epub_path)
@@ -142,4 +165,14 @@ def convert(epub_path) -> list:
     return cleaned
 
 if __name__ == "__main__":
-    pass
+    import os
+    #TODO: FIX IMAGES THAT ARE LINKED VIA WEBPAGE
+    # Do a 2nd pass that searches for images that are tagged jpg/png etc.
+    # Replace with a incrementing filename=... 
+    # Split above text to its own list element
+    # 
+    
+    # book = epub.read_epub("book.epub")
+    # for item in book.get_items():
+    #     if item.get_type() == ebooklib.ITEM_DOCUMENT:
+    #         print(item.get_content())

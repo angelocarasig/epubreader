@@ -28,3 +28,4 @@ Changelog here: [Changelog](Changelog.md)
 * Chapter Structure - Identification of current chapter and existence of prev/future chapters
 * Finding ePUB metadata
 * (NEW 16/12/2021): On file upload, redirect to main menu for file. Allow options to start from beginning, start from a specific chapter, view the epub file's contained images and a settings option to control css.
+* (NEW 16/12/2021): Read and do changelog 16/12/2021's TODO
