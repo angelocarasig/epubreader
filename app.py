@@ -1,14 +1,22 @@
 from flask import Flask, render_template, request, url_for, redirect
-import os
-import ePUBConverter
+import os, atexit, shutil
+import ePUBConverter, webbrowser, random, threading
 from pathlib import Path
 
 app = Flask(__name__, template_folder = "templates")
 
+#TODO:
+# Change to be a chapter-by-chapter format. Needs to know if a previous chapter/next chapter exist and a link to said chapter if true.
+
+'''Can have things done on startup before redirected to home'''
 @app.route("/")
 def main():
     return redirect(url_for("home"))
 
+'''
+Home has variables that contain the title and directory for the epub file. 
+TODO: Main menu redirect (read README.md 16/12/2021)
+'''
 @app.route('/home', methods=["GET", "POST"])
 def home():
     if request.method=="POST":
@@ -17,8 +25,11 @@ def home():
         #Generates a directory for the epub file (to store file + images)
         dirname = os.path.dirname(os.path.abspath(__file__))
 
+        #Create static folder if uncreated
         static_folder = dirname + "\\static"
         Path(static_folder).mkdir(parents=True, exist_ok=True)
+
+        #Uploads folder
         dirname = f"{dirname}\\static\\uploads\\{epub_file.filename[:-5]}" #Directory for file without .epub extension at end
         Path(dirname).mkdir(parents=True, exist_ok=True)
 
@@ -32,8 +43,13 @@ def home():
     else:
         return render_template("index.html")
 
-
+'''
+Functions used in reader
+'''
 def generate_images(epub_location, epub_location_folder):
+    '''
+    Collects all images inside epub and places them in the static directory: uploads/(epubfilename)/images
+    '''
     try:
         epub_location_folder += "\\images"
         Path(epub_location_folder).mkdir(parents=True, exist_ok=True)   #Creates images folder
@@ -42,7 +58,8 @@ def generate_images(epub_location, epub_location_folder):
     except:
         print("Image collection error. Maybe no images exist for this ePUB?")
 
-def get_images(epub_location):
+def get_images(epub_location) -> list:
+    '''Stores each images filename in a list and iterates each image into the html page '''
     images_directories = []
     for section in epub_location:
         if section.find("filename=") >= 0:
@@ -72,5 +89,28 @@ def reader():
     return render_template("book.html", title = novel_title[:-5], content = novel_text, images = image_list)
 
 
+'''
+Exit Handler
+'''
+
+def delete_uploads():
+    uploads_folder = "static\\uploads"
+    try:
+        shutil.rmtree(uploads_folder)
+    except:
+        print("There doesn't seem to be an uploads folder...")
+
+def handle_exit() -> None:
+    print("Server shutted down...")
+    print("Purging uploads folder...")
+    delete_uploads()
+    return
+
+atexit.register(handle_exit)
+
 if __name__ == "__main__":
-    app.run()
+    port = 5000 + random.randint(0, 999)
+    url = "http://127.0.0.1:{0}".format(port)
+
+    threading.Timer(1.25, lambda: webbrowser.open(url)).start()
+    app.run(port = port, debug=False)

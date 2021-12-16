@@ -28,3 +28,6 @@
 * Cleaned up code
 * Moved flasktest.py to app.py
 * Proper redirection to reading book and support for going back to home page
+
+### 16/12/2021
+* Added purging of uploads folder and its contents on site exit
