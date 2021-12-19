@@ -24,7 +24,7 @@ def new_sorter(new, data, tag='filename='):
     while len(data) > 0:
         curr = data[0]
         if curr.find(tag) < 0:
-            print(f"Didn't find anything for {curr[0:20]}")
+            print(f"IN SORTER: Didn't find anything for {curr[0:20]}")
             new.append(curr)
             data.pop(0)
         else:
@@ -34,6 +34,7 @@ def new_sorter(new, data, tag='filename='):
                 new.append(curr[:curr.find("\n", found)]) #Appends everything up to the thing
                 data[0] = curr[curr.find("\n", found):] #Data is now 
             else:   #Only 1 link
+                print(curr)
                 new.append(curr)
                 data.pop(0)
 
@@ -135,9 +136,7 @@ def convert(epub_path) -> list:
             print("INDEX: ", curr[index])
             if curr[index] == "1":
                 final[index] += "\n"
-                #<image src="{{ url_for('static', filename='BG.jpg')}}"/>
-                cleaned.append("filename=\"{}images\image{}.jpg\"".format(file_path, counter))
-                # cleaned.append(f"<img src=/>")
+                cleaned.append(" filename=\"{}images\image{}.jpg\"".format(file_path, counter))
                 counter += 1
         if final[index].isspace():
             print(final[index])
