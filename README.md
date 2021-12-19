@@ -18,7 +18,7 @@ Changelog here: [Changelog](Changelog.md)
 # Examples:
 ### Example 19/12/2021:
 2nd upload example: embedded image links aren't able to be in proper coordination with the raw images inside the epub file. Hence a wait time, the program downloads the images, saves them locally and *then* loads the page. Unconventional but also is a reason why officials are better. No chapter support in this one - everything is loaded into a single page. No front-end work either, just want to get the flask backend working for now.
-![19122021](https://imgur.com/a/KrIHshL)
+https://imgur.com/a/KrIHshL
 
 #
 # TODO LIST
