@@ -178,12 +178,14 @@ def convert(epub_path) -> list:
     '''
     Chapter seperation viewer. Comment out when chapters are fully processed into proper sections.
     '''
-    pass3_temp = []
-    for i in pass2_temp:
-        pass3_temp.append(i)
-        pass3_temp.append("=" * 15)
+    # pass3_temp = []
+    # for i in pass2_temp:
+    #     pass3_temp.append(i)
+    #     pass3_temp.append("=" * 15)
 
-    return pass3_temp
+    # return pass3_temp
+
+    return pass2_temp
 
 if __name__ == "__main__":
     import os

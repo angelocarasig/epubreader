@@ -47,14 +47,9 @@ def home():
         #Jump to reader page
         session["title"] = epub_file.filename
         session["path"] = file_directory
-        return redirect(url_for("reader"))
+        return redirect(url_for("menu"))
     else:
         return render_template("index.html")
-
-@app.route('/menu', methods=["GET", "POST"])
-def menu():
-    title = get_session_title()
-
 
 '''
 Functions used in reader
@@ -163,8 +158,8 @@ def set_chapters_data(novel_data):
         f.write(j)
     
 
-@app.route("/reader", methods=["GET", "POST"])
-def reader():
+@app.route("/menu", methods=["GET", "POST"])
+def menu():
     novel_title = get_session_title()
     epub_location = get_session_path()
 
@@ -191,14 +186,15 @@ def reader():
     # return render_template("book.html", title = novel_title[:-5], content = novel_text, images = image_list)
     return render_template("book_mainpage.html", title=novel_title[:-5])
 
-@app.route("/reader/start", methods = ["GET", "POST"])
-def start():
+@app.route("/reader", methods = ["GET", "POST"])
+def reader():
     title = get_session_title()
-    print("SESSION: \n", session)
+
     chapters = json.load(open("chapters.json"))
-    current_pos = session['current_pos']
+    current_pos = int(request.args.get('chapter'))
+    image_list = session['image_list']
     content = chapters[f'Chapter {current_pos}']
-    return render_template("book.html", title = title, content = content)
+    return render_template("book.html", title = title, content = content, images = image_list, next = current_pos + 1, prev = current_pos - 1)
 
 '''
 Exit Handler

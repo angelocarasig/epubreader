@@ -26,6 +26,10 @@
             </p>
         {% endif %}
     {% endfor %}
+
+    <p><a href="{{ url_for('reader', chapter=prev)}}">Previous Chapter</a></p>
+    <p><a href="{{ url_for('reader', chapter=next)}}">Next Chapter</a></p>
+
 </body>
 
 </html>
