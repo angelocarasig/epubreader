@@ -169,12 +169,21 @@ def convert(epub_path) -> list:
             print("\n\nSET FINISHED\n\n")
     
     print("CLEANED LENGTH: ", len(cleaned))
-    print(cleaned[0])
-    print(cleaned[1])
-    print(cleaned[2])
+
     pass2_temp = []
     new_sorter(new=pass2_temp, data=cleaned, tag="filename=")
-    return pass2_temp
+
+
+
+    '''
+    Chapter seperation viewer. Comment out when chapters are fully processed into proper sections.
+    '''
+    pass3_temp = []
+    for i in pass2_temp:
+        pass3_temp.append(i)
+        pass3_temp.append("=" * 15)
+
+    return pass3_temp
 
 if __name__ == "__main__":
     import os

@@ -95,5 +95,10 @@ def new_sorter(new, data, tag='filename='):
     print(len(new))
     for i in new: print(i)
 
-new = []
-new_sorter(new = new, data=data, tag = 'filename=')
+# new = []
+# new_sorter(new = new, data=data, tag = 'filename=')
+
+import json
+
+test = json.load(open("chapters.json"))
+print(len(test))

@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, url_for, redirect, session
-import os, atexit, shutil
+import os, atexit, shutil, json
 import ePUBConverter, webbrowser, random, threading
 from pathlib import Path
 
 app = Flask(__name__, template_folder = "templates")
+SESSION_TYPE = 'filesystem'
 '''
 For session secret key
 '''
@@ -71,12 +72,12 @@ def generate_images(epub_location, epub_location_folder):
         print("Image collection error. Maybe no images exist for this ePUB?")
 
 def get_images(epub_location) -> list:
-    '''Stores each images filename in a list and iterates each image into the html page '''
+    '''Stores each images filename in a list and iterates each image into the html page. No values are added/deleted, only replaced.'''
     images_directories = []
     for section in epub_location:
         if section.find("filename=") >= 0:
             section = section.replace("filename\"static\"", "")
-            # images_directories.append(section[17:-1])
+            # images_directories.append(section[17:-1]) Below is more updated for appending
             images_directories.append(section[section.find("uploads\\"):section.find("\"", section.find("uploads\\"))])
 
     for index,val in enumerate(images_directories):
@@ -115,9 +116,9 @@ def get_chapter_list(chapters) -> list:
     chapter_list = []
     for i in chapters:
         if i.find("filename=") >= 0:
-            chapter_list.append(0)
-        else:
             chapter_list.append(1)
+        else:
+            chapter_list.append(0)
     print(chapter_list)
     return chapter_list
 
@@ -127,7 +128,7 @@ def get_chapter_count(chapter_list) -> int:
     '''
     return chapter_list.count(1)
 
-def set_chapters_data(novel_data, chapter_binary_data, total_chapters):
+def set_chapters_data(novel_data):
     '''
     Will generate session data for each chapter. Chapters are labelled numerically e.g Chapter1, Chapter2 Chapter3 etc.\n
     Sessions are stored as dictionary data e.g for the novel's title session["title"] = (noveltitle)\n
@@ -135,32 +136,32 @@ def set_chapters_data(novel_data, chapter_binary_data, total_chapters):
     This allows for images to be attached to a chapter (so there are no chapters that contain only pictures)
     '''
     novel_data_temp = novel_data.copy()
-    print("NOVEL DATA: ", novel_data_temp[0])
-    print("NOVEL DATA AMOUNT: ", len(novel_data_temp))
-    
-    for i in range(0, total_chapters):
-        curr_chapter_data = []
-        starting_point = 0
-        curr = chapter_binary_data[starting_point]
-        
-        if curr == 0: #Is image
-            while chapter_binary_data[starting_point + 1] == 1: #While next is an image
-                section = []
-                section.append(novel_data_temp.pop(starting_point))  #Remove from novel_data and add to section
-                curr_chapter_data.append(section)               #Add that section to the current chapter's data
-                starting_point += 1
+    print("NOVEL DATA: \n", novel_data_temp[0])
+    print("NOVEL DATA LENGTH: ", len(novel_data_temp))
 
-        curr = chapter_binary_data[0]                           #If reached here, it is text, add text to chapter data and finish chapter
-        curr_chapter_data.append(curr)
-        
-        session[f"Chapter{i + 1}"] = curr_chapter_data
-        novel_data_temp.pop(0)
+    #Chapter binary data NOTES:
+    #0 = Text
+    #1 = Image
+
+    curr_chapter = []
+    count = 1
+    chapters = dict()
+    while len(novel_data_temp) > 0:
+        curr_selected = novel_data_temp[0]
+
+        if curr_selected.find("filename=") >= 0: #If image
+            curr_chapter.append(curr_selected)
+            novel_data_temp.pop(0)
+        else:
+            curr_chapter.append(curr_selected)
+            novel_data_temp.pop(0)
+            chapters[f"Chapter {count}"] = curr_chapter
+            count += 1
+            curr_chapter = []
+    j = json.dumps(chapters)
+    with open("chapters.json", "w") as f:
+        f.write(j)
     
-    print("Checking session items")
-    for i,j in session.items():
-        print(i, end=": ")
-        print(j)
-        
 
 @app.route("/reader", methods=["GET", "POST"])
 def reader():
@@ -182,12 +183,22 @@ def reader():
     print("Novel text list length: ", len(novel_text))
     print("Total chapters: ", total_chapters)
 
-    # set_chapters_data(novel_text, chapter_binary_data, total_chapters)
+    set_chapters_data(novel_text)
 
     image_list = get_images(novel_text)
+    session['image_list'] = image_list
+    session['current_pos'] = 1
+    # return render_template("book.html", title = novel_title[:-5], content = novel_text, images = image_list)
+    return render_template("book_mainpage.html", title=novel_title[:-5])
 
-    return render_template("book.html", title = novel_title[:-5], content = novel_text, images = image_list)
-
+@app.route("/reader/start", methods = ["GET", "POST"])
+def start():
+    title = get_session_title()
+    print("SESSION: \n", session)
+    chapters = json.load(open("chapters.json"))
+    current_pos = session['current_pos']
+    content = chapters[f'Chapter {current_pos}']
+    return render_template("book.html", title = title, content = content)
 
 '''
 Exit Handler
