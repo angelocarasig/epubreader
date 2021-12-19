@@ -41,3 +41,6 @@
 * Past three days have been working on sorting algorithm
 * Converter now properly grabs online image links when present in the text and saves them locally
 * Still need to clean up but it's working for now 
+* Content data now stored in json file
+* Next/Previous chapter working partially --> Need to throw exception / bring user back to main menu when accessing an invalid link
+* Images currently do not sync up due to previous code. Now that the chapters are being displayed individually, images are unsynced and need to be adjusted somehow (The first image for chapter 1 shows up as the first image for all chapters, 2nd image for 2nd image in all chapters, etc...)
