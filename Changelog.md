@@ -36,3 +36,8 @@
     - 2nd pass of the novel, replaces all hyperlinks back to "filename=..."
     - TODO: On 2nd pass, need to generate a new list where it checks each section of the novel if there are more than 1 "filename=..." substrings. If more than 1 exist, split into (before text) ~~image~~ (image and after text). Needs to do this until correct. Also will solve issue of multiple images in a single section.
 * TODO (Chapter by chapter): Session dictionary needs to make "ChapterX: 'data'", where data is a list of lists which contain images if there are any, and a text. This way, on userclick, can just access the data stored in the dictionary for said chapter.
+
+### 19/12/2021
+* Past three days have been working on sorting algorithm
+* Converter now properly grabs online image links when present in the text and saves them locally
+* Still need to clean up but it's working for now 

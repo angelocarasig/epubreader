@@ -20,6 +20,23 @@ Using main function 'convert(epub_path)':
 
 blacklist = ['[document]', 'noscript', 'header', 'html', 'meta', 'head', 'input', 'script']
 
+def new_sorter(new, data, tag='filename='):
+    while len(data) > 0:
+        curr = data[0]
+        if curr.find(tag) < 0:
+            print(f"Didn't find anything for {curr[0:20]}")
+            new.append(curr)
+            data.pop(0)
+        else:
+            links = re.findall(tag, curr)
+            if len(links) > 1: #If more than one link
+                found = curr.find(tag)
+                new.append(curr[:curr.find("\n", found)]) #Appends everything up to the thing
+                data[0] = curr[curr.find("\n", found):] #Data is now 
+            else:   #Only 1 link
+                new.append(curr)
+                data.pop(0)
+
 def image_support(path):
     '''
     Doesn't return anything.
@@ -143,26 +160,22 @@ def convert(epub_path) -> list:
         links = re.findall(WEB_URL_REGEX, section)
         if len(links) > 0:
             for _ in range(len(links)):
-                print("Found a link. Checking...")
-                print("Current section links size: ", len(links))
-                print("Links currently contain: ", links)
                 if links[0].find("jpg") >= 0 or links[0].find("png") >= 0:
                     print("Link: ", links[0])
-                    # cleaned[index] = section.replace(links[0], "filename=\"image.jpg\"") #A proper filename is not important, only needs to be the string "filename=" As thats whats used to search
-                    section = section.replace(links[0], "filename=\"{}images\image{}.jpg\"".format(file_path, counter))
+                    section = section.replace(links[0], " filename=\"{}images\image{}.jpg\"\n".format(file_path, image_counter))
                     cleaned[index] = section
-                    print(cleaned[index][:100])
                     urllib.request.urlretrieve(links[0], f'{file_path}images\\image{image_counter}.jpg')
-                    image_counter += 1
+                image_counter += 1
                 links.pop(0)
             print("\n\nSET FINISHED\n\n")
     
-
-    print("\n===Results===\n")
-    print("File Path:", epub_path)
-    print("Total Sections:", len(cleaned) // 2)
-    print("=============")
-    return cleaned
+    print("CLEANED LENGTH: ", len(cleaned))
+    print(cleaned[0])
+    print(cleaned[1])
+    print(cleaned[2])
+    pass2_temp = []
+    new_sorter(new=pass2_temp, data=cleaned, tag="filename=")
+    return pass2_temp
 
 if __name__ == "__main__":
     import os

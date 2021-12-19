@@ -76,7 +76,8 @@ def get_images(epub_location) -> list:
     for section in epub_location:
         if section.find("filename=") >= 0:
             section = section.replace("filename\"static\"", "")
-            images_directories.append(section[17:-1])
+            # images_directories.append(section[17:-1])
+            images_directories.append(section[section.find("uploads\\"):section.find("\n", section.find("uploads\\"))])
 
     for index,val in enumerate(images_directories):
         images_directories[index] = val.replace("\\", "/")
