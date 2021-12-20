@@ -3,40 +3,8 @@ import ebooklib
 from bs4 import BeautifulSoup
 import re
 import urllib.request
-import random
-
-'''
-This Python file converts an epub into text. Requires path to epub.
-
-Using main function 'convert(epub_path)':
-'''
-
-#TODO:
-'''
-- DONE! Image Support Per Chapter
-- DONE! Purging Blank Chapters (Ones with just \n)
-- Going to assume that the epubconverter strips each image into a seperate chapter. If not, i'm so fkd
-'''
-
+import ePUBImageGenerator
 blacklist = ['[document]', 'noscript', 'header', 'html', 'meta', 'head', 'input', 'script']
-
-def new_sorter(new, data, tag='filename='):
-    while len(data) > 0:
-        curr = data[0]
-        if curr.find(tag) < 0:
-            print(f"IN SORTER: Didn't find anything for {curr[0:20]}")
-            new.append(curr)
-            data.pop(0)
-        else:
-            links = re.findall(tag, curr)
-            if len(links) > 1: #If more than one link
-                found = curr.find(tag)
-                new.append(curr[:curr.find("\n", found)]) #Appends everything up to the thing
-                data[0] = curr[curr.find("\n", found):] #Data is now 
-            else:   #Only 1 link
-                print(curr)
-                new.append(curr)
-                data.pop(0)
 
 def image_support(path):
     '''
@@ -44,12 +12,7 @@ def image_support(path):
     Collates all images inside the novel and places them in the novel's images folder.
     Numbered by when they appear in the novel (from 0)
     '''
-
-    book = epub.read_epub(path)
-    file_path = path[:path.rfind("\\") + 1]
-    for index, image in enumerate(book.get_items_of_type(ebooklib.ITEM_IMAGE)):
-        with open(f'{file_path}/images/image{index}.jpg','wb') as f:
-            f.write(epub.EpubImage.get_content(image))
+    ePUBImageGenerator.generate_images(path)
 
 def chapters_list(epub_path) -> list: 
     '''
@@ -65,7 +28,9 @@ def chapters_list(epub_path) -> list:
 
 def chapter_contents(chap, file_path) -> list:
     '''
-    Is used in loop with chapters_list to strip a chapter's contents to only text and image tags
+    For a section of the epub file, strip components to just text and image tags.\n
+    string with byte-data --> string with text and image-tags\n
+    Needs to be called in a for-loop for the chapters list
     '''
 
     output = ''
@@ -98,63 +63,59 @@ def full_book(thtml, file_path) -> list:
     '''
 
     output = []
+    
     for html in thtml:
         text =  chapter_contents(html, file_path)
         output.append(text)
+
     return output
 
-def convert(epub_path) -> list:
+def _initialize_locations(epub_path) -> tuple:
     '''
-    Use this instead of the full_book function. 
-    Does the same as full_book but also cleans extra whitespace and attaches the corresponding image tag to their respective locations.
-    '''
-
-    '''
-    First purging locations if it exists for the book
+    Initial processes:\n
+    - Returns the locations file and file path as a tuple
+    - Purges locations.txt if it exists for the book
+    - 'file_path' variable directs to the epub file's directory --> where it's stored
     '''
     file_path = epub_path[:epub_path.rfind("\\") + 1]
     locations_file = f'{file_path}images\\locations.txt'
     with open(locations_file, "w") as f:
         f.write("")
+    return locations_file, file_path
 
+def _purge_whitespace(converted_epub_file, locations_file, file_path) -> list:
     '''
-    Generate first pass
+    PASS 1: Purge whitespace for each chapter in the book
     '''
-    chapters = chapters_list(epub_path)
-    final = full_book(chapters, epub_path)
-
     cleaned = []
-
-    '''
-    PASS 1: Check for whitespace only chapters before returning
-    '''
     counter = 0
-    for index, val in enumerate(final):
+    for index, val in enumerate(converted_epub_file):
         print(index)
         with open(locations_file, "r") as f:
             curr = f.readline()
             print("INDEX: ", curr[index])
             if curr[index] == "1":
-                final[index] += "\n"
+                converted_epub_file[index] += "\n"
                 cleaned.append(" filename=\"{}images\image{}.jpg\"".format(file_path, counter))
                 counter += 1
-        if final[index].isspace():
-            print(final[index])
+        if converted_epub_file[index].isspace():
+            print(converted_epub_file[index])
             print(f"Section {index} is a blank section. Removing...")
-        elif final[index].strip() == "":
-            print(final[index])
+        elif converted_epub_file[index].strip() == "":
+            print(converted_epub_file[index])
             print(f"Section {index} is a blank section. Removing...")
         else:
-            #Converts multiple spaces into a single space due to previous methods stripping certain
-            #parts of the section and leaving extra blank space
             cleaned.append(re.sub(' +', ' ', val))
-            # cleaned.append("\n=========\n") #TODO: Remove when chapters are properly seperated
 
+    return cleaned
+
+def _check_external_imagelinks(first_pass_data, file_path):
     '''
-    PASS 2: Check for jpg/png hyperlinks
+    Searches for external image links within the epub file. If found, goes to site and downloads image.\n
+    If links exist, it is *probably* an unofficial file.
     '''
     image_counter = 0
-    for index, section in enumerate(cleaned):
+    for index, section in enumerate(first_pass_data):
         WEB_URL_REGEX = r"""(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))"""
         links = re.findall(WEB_URL_REGEX, section)
         if len(links) > 0:
@@ -162,40 +123,50 @@ def convert(epub_path) -> list:
                 if links[0].find("jpg") >= 0 or links[0].find("png") >= 0:
                     print("Link: ", links[0])
                     section = section.replace(links[0], " filename=\"{}images\image{}.jpg\"\n".format(file_path, image_counter))
-                    cleaned[index] = section
+                    first_pass_data[index] = section
+                    print("\nFound Link!!\n")
+                    print("Link: \n", links[0])
+                    print("Downloading...")
                     urllib.request.urlretrieve(links[0], f'{file_path}images\\image{image_counter}.jpg')
                 image_counter += 1
                 links.pop(0)
             print("\n\nSET FINISHED\n\n")
-    
-    print("CLEANED LENGTH: ", len(cleaned))
+    return first_pass_data
 
-    pass2_temp = []
-    new_sorter(new=pass2_temp, data=cleaned, tag="filename=")
+def _rearrange_chapters(new, data, tag='filename='):
+    while len(data) > 0:
+        curr = data[0]
+        if curr.find(tag) < 0:
+            print(f"IN SORTER: Didn't find anything for {curr[0:20]}")
+            new.append(curr)
+            data.pop(0)
+        else:
+            links = re.findall(tag, curr)
+            if len(links) > 1: #If more than one link
+                found = curr.find(tag)
+                new.append(curr[:curr.find("\n", found)]) #Appends everything up to the thing
+                data[0] = curr[curr.find("\n", found):] #Data is now 
+            else:   #Only 1 link
+                print(curr)
+                new.append(curr)
+                data.pop(0)
+    return new
 
+def convert_epub(epub_path) -> list:
+    locations_file, file_directory = _initialize_locations(epub_path)
+    #locations_file points to a locations.txt file 
+    chapters = chapters_list(epub_path)
+    final = full_book(chapters, epub_path)
 
+    first_pass = _purge_whitespace(final, locations_file, file_directory)
+    print("First pass: ", first_pass[0][:20])
+    second_pass = _check_external_imagelinks(first_pass, file_directory)
+    print("Second pass: ", second_pass[0][:20])
 
-    '''
-    Chapter seperation viewer. Comment out when chapters are fully processed into proper sections.
-    '''
-    # pass3_temp = []
-    # for i in pass2_temp:
-    #     pass3_temp.append(i)
-    #     pass3_temp.append("=" * 15)
+    third_pass = []
 
-    # return pass3_temp
-
-    return pass2_temp
+    cleaned_epub = _rearrange_chapters(new = third_pass, data = second_pass)
+    return cleaned_epub
 
 if __name__ == "__main__":
-    import os
-    #TODO: FIX IMAGES THAT ARE LINKED VIA WEBPAGE
-    # Do a 2nd pass that searches for images that are tagged jpg/png etc.
-    # Replace with a incrementing filename=... 
-    # Split above text to its own list element
-    # 
-    
-    # book = epub.read_epub("book.epub")
-    # for item in book.get_items():
-    #     if item.get_type() == ebooklib.ITEM_DOCUMENT:
-    #         print(item.get_content())
+    pass

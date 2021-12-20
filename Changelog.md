@@ -43,4 +43,11 @@
 * Still need to clean up but it's working for now 
 * Content data now stored in json file
 * Next/Previous chapter working partially --> Need to throw exception / bring user back to main menu when accessing an invalid link
-* Images currently do not sync up due to previous code. Now that the chapters are being displayed individually, images are unsynced and need to be adjusted somehow (The first image for chapter 1 shows up as the first image for all chapters, 2nd image for 2nd image in all chapters, etc...)
+* ~~Images currently do not sync up due to previous code. Now that the chapters are being displayed individually, images are unsynced and need to be adjusted somehow (The first image for chapter 1 shows up as the first image for all chapters, 2nd image for 2nd image in all chapters, etc...)~~
+* ~~Images load, they sync up properly, but somewhere in the code there is an issue where images do not properly sync up for ones embedded in the epub file (often official link). Ironically this makes unofficial epubs that link to external pages for the images *better* than the current originals. LOL~~ DONE!
+
+### 20/12/2021
+* Images now sync up properly
+* TODO: Clean up everything so far --> Move all functions into where they "should" be
+* Cleaned up ePUBConverter.py a bit its somewhat neater than last time
+* Proper catching of invalid chapters, throws users back to main page

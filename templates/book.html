@@ -17,7 +17,7 @@
         {% if value.find("filename=") >= 0 %}
             {% set current_value = count[0] %}
             <p>
-            <image src="{{ url_for('static', filename=images[current_value])}}"/>
+            <image src="{{ url_for('static', filename=images[current_image_loc][current_value])}}"/>
             </p>
             {% set count = count.append(count.pop() + 1) %}
             {% else %}
