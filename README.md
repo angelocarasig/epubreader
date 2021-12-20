@@ -17,8 +17,12 @@ Changelog here: [Changelog](Changelog.md)
 
 # Examples:
 ### Example 19/12/2021:
-2nd upload example: embedded image links aren't able to be in proper coordination with the raw images inside the epub file. Hence a wait time, the program downloads the images, saves them locally and *then* loads the page. Unconventional but also is a reason why officials are better. No chapter support in this one - everything is loaded into a single page. No front-end work either, just want to get the flask backend working for now.
+embedded image links aren't able to be in proper coordination with the raw images inside the epub file. Hence a wait time, the program downloads the images, saves them locally and *then* loads the page. Unconventional but also is a reason why officials are better. No chapter support in this one - everything is loaded into a single page. No front-end work either, just want to get the flask backend working for now.
 https://imgur.com/a/KrIHshL
+
+###Example 20/12/2021:
+Somewhat functional main menu implemented. Displays total sections, chapters are seperated appropiately, correct images show at their correct positions. Throws user back to main menu when accessing invalid chapter (e.g next chapter on last chapter or entering a large number in browser)
+https://imgur.com/a/OkfYIGL
 
 #
 # TODO LIST
