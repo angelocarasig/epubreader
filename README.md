@@ -35,7 +35,7 @@ https://imgur.com/a/OkfYIGL
 * ~~Purging of uploads folder on exit (is this even possible)~~ yes it is
 * ~~Deploy via Heroku and ensure directories used in code function similarly~~ Staying local indefinitely --> Create an example branch
 * Linking webpage CSS
-* ~~Chapter Structure - Identification of current chapter and existence of prev/future chapters~~ If next/prev chapter doesn't exist, throw them back into main menu
-* ~~Finding ePUB metadata~~ Probably impossible
-* (NEW 16/12/2021): On file upload, redirect to main menu for file. Allow options to start from beginning, start from a specific chapter, view the epub file's contained images and a settings option to control css.
+* ~~Chapter Structure - Identification of current chapter and existence of prev/future chapters~~ ~~If next/prev chapter doesn't exist, throw them back into main menu~~ DONE!
+* ~~Finding ePUB metadata~~ Probably impossible --> try to find ToC 
+* (NEW 16/12/2021): ~~On file upload, redirect to main menu for file. Allow options to start from beginning~~, start from a specific chapter, view the epub file's contained images and a settings option to control css.
 * ~~(NEW 16/12/2021): Read and do changelog 16/12/2021's TODO~~
